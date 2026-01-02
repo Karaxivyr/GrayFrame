@@ -1,0 +1,47 @@
+/* Shared item skins — airy, readable rows */
+
+.item {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--panel);
+  box-shadow: var(--shadow-1);
+  min-width: 0;
+}
+.item:hover {
+  background: color-mix(in srgb, var(--panel) 88%, var(--panel-subtle));
+}
+
+.item__leading {
+  opacity: 0.8;
+}
+.item__content {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.item__meta {
+  font-size: var(--fs-0);
+  color: var(--text-muted);
+}
+.item__actions {
+  display: inline-flex;
+  gap: 0.35rem;
+}
+
+.item--card {
+  grid-template-columns: 1fr;
+  padding: 0.9rem;
+}
+.item--chip {
+  display: inline-flex;
+  grid-template-columns: none;
+  gap: 0.35rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: 999px;
+}

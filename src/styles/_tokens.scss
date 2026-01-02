@@ -1,0 +1,89 @@
+/* Neutral-first design tokens — tuned for minimalist UI */
+
+:root {
+  /* Pure neutrals */
+  --N0: #ffffff;
+  --N25: #fbfbfc;
+  --N50: #f6f7f9;
+  --N100: #f0f2f5;
+  --N150: #e9ecf1;
+  --N200: #e1e6ed;
+  --N300: #cfd6e0;
+  --N400: #b9c2cf;
+  --N500: #a2adbd;
+  --N600: #8893a5;
+  --N700: #6f7888;
+  --N800: #505866;
+  --N900: #2f333a;
+  --N950: #1c1f24;
+  --N1000: #121418;
+
+  /* Surfaces */
+  --bg: var(--N50);
+  --panel: var(--N0);
+  --panel-subtle: var(--N25);
+  --panel-elev: var(--N0);
+  --border: color-mix(in srgb, var(--N200) 80%, transparent);
+
+  /* Type */
+  --text: var(--N900);
+  --text-muted: color-mix(in srgb, var(--N700) 90%, transparent);
+
+  /* Radius & spacing (tight) */
+  --r-sm: 10px;
+  --r-md: 14px;
+  --r-lg: 18px;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+
+  /* Shadow (subtle) */
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-2: 0 10px 24px rgba(0, 0, 0, 0.08);
+
+  /* Focus ring */
+  --focus-ring: 0 0 0 3px rgba(80, 88, 102, 0.18);
+
+  /* Grid defaults */
+  --grid-col-min: 360px;
+  --grid-row: 150px;
+
+  /* Typography */
+  --font-sans: ui-sans-serif, system-ui, Inter, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial;
+  --fs-0: 0.85rem;
+  --fs-1: 0.95rem;
+  --fs-2: 1.15rem;
+  --fs-3: 1.45rem;
+}
+
+[data-theme="dark"] {
+  --bg: var(--N1000);
+  --panel: var(--N950);
+  --panel-subtle: #17191d;
+  --panel-elev: var(--N900);
+  --text: #e9ebef;
+  --text-muted: #b3b9c3;
+  --border: #3a4049;
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --shadow-2: 0 12px 28px rgba(0, 0, 0, 0.55);
+}
+
+html,
+body,
+#app {
+  height: 100%;
+}
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: var(--fs-1);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+.muted {
+  color: var(--text-muted);
+}

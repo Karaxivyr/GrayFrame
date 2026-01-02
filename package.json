@@ -1,0 +1,27 @@
+{
+  "name": "creator-dashboard-lean-v1",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc -b && vite build",
+    "preview": "vite preview",
+    "type-check": "vue-tsc --noEmit"
+  },
+  "dependencies": {
+    "pinia": "^2.1.7",
+    "vue": "^3.5.0",
+    "vue-router": "^4.3.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.0.4",
+    "sass": "^1.77.0",
+    "typescript": "^5.6.0",
+    "vite": "^7.3.0",
+    "vue-tsc": "^2.0.26"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

@@ -1,0 +1,56 @@
+/* Shared module skin — calmer, clearer */
+
+.mod {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-1);
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+
+  /* IMPORTANT: ensures header/footer backgrounds don't square off rounded corners */
+  overflow: hidden;
+}
+
+.mod:focus-within {
+  box-shadow: var(--shadow-1), var(--focus-ring);
+}
+
+.mod__header {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.8rem 1rem 0.6rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+  background: color-mix(in srgb, var(--panel) 92%, var(--panel-subtle));
+
+  /* inherit rounding so top corners stay rounded even if overflow changes */
+  border-top-left-radius: inherit;
+  border-top-right-radius: inherit;
+}
+
+.mod__body {
+  padding: 1rem;
+  min-height: 0;
+}
+
+.mod__footer {
+  padding: 0.75rem 1rem;
+  border-top: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+
+  /* match parent rounding on bottom corners */
+  border-bottom-left-radius: inherit;
+  border-bottom-right-radius: inherit;
+}
+
+/* Orientation flags for internal styling if needed */
+.mod--v {
+  --mod-orientation: vertical;
+}
+.mod--h {
+  --mod-orientation: horizontal;
+}
+
+/* Size classes are used by appGrid via :deep() for row spans; no extra rules here */
