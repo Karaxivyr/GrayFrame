@@ -5,22 +5,29 @@
   margin-inline: auto;
 }
 
+/* Ensure pages can scroll */
+html,
+body {
+  min-height: 100%;
+}
+body {
+  overflow-y: auto;
+}
+#app {
+  min-height: 100vh;
+}
+
 .page {
   padding: var(--space-4);
+  overflow: visible;
 }
+
 .page > .page-header {
   margin: 0 0 var(--space-3);
 }
 .page h1 {
   font-size: var(--fs-3);
   line-height: 1.15;
-  margin: 0.25rem 0 0.25rem;
-}
-.eyebrow {
-  font-size: var(--fs-0);
-  letter-spacing: 0.02em;
-  opacity: 0.75;
-  margin: 0;
 }
 
 /* Buttons */
@@ -38,44 +45,13 @@
   background: color-mix(in srgb, var(--panel-subtle) 60%, var(--panel));
 }
 .btn--primary {
-  background: color-mix(in srgb, var(--panel) 70%, var(--panel-subtle));
+  border-color: color-mix(in srgb, var(--accent) 25%, var(--border));
+  background: var(--accent);
+  color: var(--accent-contrast);
 }
 
-/* Button states */
-.btn:disabled,
-.btn[disabled] {
-  opacity: 0.55;
-  color: color-mix(in srgb, var(--text) 70%, transparent);
-  background: color-mix(in srgb, var(--panel-subtle) 85%, var(--panel));
-  border-color: color-mix(in srgb, var(--border) 85%, transparent);
-  cursor: not-allowed;
-}
-
-/* Optional emphasis primary */
-.btn--primary {
-  background: color-mix(in srgb, var(--panel) 70%, var(--panel-subtle));
-}
-.btn--primary:hover {
-  background: color-mix(in srgb, var(--panel) 55%, var(--panel-subtle));
-}
-.btn--primary:disabled {
-  background: color-mix(in srgb, var(--panel) 85%, var(--panel-subtle));
-}
-
-/* Danger variant */
-.btn--danger {
-  background: color-mix(in srgb, #ff6961 18%, var(--panel));
-  border-color: color-mix(in srgb, #ff6961 28%, var(--border));
-}
-.btn--danger:hover {
-  background: color-mix(in srgb, #ff6961 26%, var(--panel));
-  border-color: color-mix(in srgb, #ff6961 38%, var(--border));
-}
-
-/* Inputs */
-.input,
-input[type="text"],
-input[type="datetime-local"],
+/* ✅ CORRECTED: base input styling (was accidentally targeting <a>) */
+input,
 select,
 textarea {
   width: 100%;
@@ -85,6 +61,7 @@ textarea {
   background: var(--panel);
   color: inherit;
   font: inherit;
+  box-sizing: border-box;
 }
 input:focus,
 select:focus,
@@ -99,16 +76,5 @@ textarea:focus {
   background: var(--panel);
   border-radius: var(--r-md);
   box-shadow: var(--shadow-1);
-  padding: var(--space-4);
-}
-
-/* Tight list grid */
-.list {
-  display: grid;
-  gap: 0.5rem;
-}
-
-/* Section spacing */
-.section + .section {
-  margin-top: var(--space-6);
+  padding: var(--space-3);
 }

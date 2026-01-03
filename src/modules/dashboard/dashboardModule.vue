@@ -1,6 +1,6 @@
 <template>
   <!-- Read-only overview; no create actions -->
-  <base-module title="Dashboard " subtitle="at-a-glance" :readonly="true">
+  <base-module title="Dashboard " subtitle="At A Glance" :readonly="true">
     <div class="stats">
       <!-- NOTES TILE -->
       <article class="stat">
