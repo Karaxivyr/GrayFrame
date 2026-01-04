@@ -1,9 +1,11 @@
+<!-- src/pages/settingsPage.vue -->
 <template>
   <section class="page container">
     <header class="page-header">
       <h1>Settings</h1>
       <p class="muted">
-        Enable modules, set theme, and personalize your profile.
+        Enable modules, customize your theme & colors, manage your profile and
+        data.
       </p>
     </header>
 
@@ -52,29 +54,63 @@
         </div>
       </div>
 
-      <!-- BOTTOM: grid (Modules + Data) -->
-      <div class="grid-3 two-col">
-        <!-- Modules -->
+      <!-- THEME & COLORS -->
+      <div class="card">
+        <ThemeEditor />
+      </div>
+
+      <!-- BOTTOM: 2-up grid (desktop) -->
+      <div class="grid-2">
+        <!-- MODULES (cleaned) -->
         <div class="card card--column">
           <h2>Modules</h2>
 
-          <div class="rows">
-            <label class="toggle">
-              <input
-                type="checkbox"
-                :checked="enabled.notes"
-                @change="onToggle('notes', $event)"
-              />
-              <span>Notes</span>
-            </label>
-            <label class="toggle">
-              <input
-                type="checkbox"
-                :checked="enabled.tasks"
-                @change="onToggle('tasks', $event)"
-              />
-              <span>Tasks</span>
-            </label>
+          <div class="module-rows">
+            <!-- Notes -->
+            <div class="module-row">
+              <label class="toggle">
+                <input
+                  type="checkbox"
+                  :checked="enabled.notes"
+                  @change="onToggle('notes', $event)"
+                />
+                <span>
+                  <strong>Notes</strong>
+                  <small class="muted">Quick jot pad with tags & search.</small>
+                </span>
+              </label>
+              <div class="module-actions">
+                <button
+                  class="btn btn--danger btn--ghost"
+                  @click="clearModule('notes')"
+                >
+                  Clear data
+                </button>
+              </div>
+            </div>
+
+            <!-- Tasks -->
+            <div class="module-row">
+              <label class="toggle">
+                <input
+                  type="checkbox"
+                  :checked="enabled.tasks"
+                  @change="onToggle('tasks', $event)"
+                />
+                <span>
+                  <strong>Tasks</strong>
+                  <small class="muted">Light to-do with due dates.</small>
+                </span>
+              </label>
+              <div class="module-actions">
+                <button
+                  class="btn btn--danger btn--ghost"
+                  @click="clearModule('tasks')"
+                >
+                  Clear data
+                </button>
+              </div>
+            </div>
           </div>
 
           <div class="spacer"></div>
@@ -84,7 +120,7 @@
           </div>
         </div>
 
-        <!-- Data -->
+        <!-- DATA -->
         <div class="card card--column">
           <h2>Data</h2>
 
@@ -92,14 +128,15 @@
             <div class="inline">
               <span class="label">Export / Import</span>
               <div class="row__controls">
-                <button class="btn" @click="exportAll">Export JSON</button>
+                <!-- Core-only export/import (User + Modules) -->
+                <button class="btn" @click="exportCore">Export JSON</button>
                 <label class="btn">
                   Import JSON
                   <input
                     class="sr-only"
                     type="file"
                     accept="application/json,.json"
-                    @change="onImport"
+                    @change="onImportCore"
                     hidden
                   />
                 </label>
@@ -107,50 +144,99 @@
             </div>
 
             <ul class="bullets">
-              <li>Includes modules, notes, tasks, theme, and profile.</li>
+              <li>Includes modules (Notes, Tasks) and your profile.</li>
               <li>Stored locally in your browser (IndexedDB).</li>
             </ul>
+
+            <div v-if="storageHint" class="usage">
+              <small class="muted"
+                >Approx. storage used: {{ storageHint }}</small
+              >
+            </div>
           </div>
 
           <div class="spacer"></div>
 
           <div class="footer-actions">
             <small class="muted"
-              >Tip: keep a backup before clearing your browser storage.</small
+              >Tip: export a backup before clearing storage.</small
             >
           </div>
-        </div>
-      </div>
 
-      <!-- Full-width Theme & Colors editor (becomes the only place for mode + colors) -->
-      <div class="card card--column">
-        <ThemeEditor />
+          <div class="danger-zone">
+            <h3>Danger Zone</h3>
+            <p class="muted">
+              Delete <strong>all local data</strong> for this app on this device
+              (IndexedDB, local/session storage, caches). This cannot be undone.
+            </p>
+            <button class="btn btn--danger" @click="onWipeAll">
+              Delete all local data
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </section>
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useModuleSettingsStore } from "../stores/moduleSettings.store";
 import { useUserStateStore } from "../stores/userState.store";
 import type { ModuleId } from "../types/settings.types";
 import { useExportImport } from "../composables/useExportImport";
+import { useStorageMaintenance } from "../composables/useStorageMaintenance";
+import { useModuleMaintenance } from "../composables/useModuleMaintenance";
 
-/* Theme editor is now the single source for mode + colors */
+// Embedded Theme Editor
 import ThemeEditor from "../modules/settings/themeEditor.vue";
 
 const settings = useModuleSettingsStore();
 const user = useUserStateStore();
-const { exportAll, importAll } = useExportImport();
 
-/* Modules (on/off only) */
-const enabled = computed(() => settings.enabled);
+// Core-only export/import (User + Modules)
+const { exportCore, importCore } = useExportImport();
+
+const { wipeAllAppData, estimateStorage } = useStorageMaintenance();
+const { clearNotesData, clearTasksData } = useModuleMaintenance();
+
+/* Modules (on/off only) — normalized to a total map so TS never sees undefined */
+const enabled = computed<Record<ModuleId, boolean>>(() => {
+  const m = settings.enabled as Partial<Record<ModuleId, boolean>> | undefined;
+  return {
+    notes: !!m?.notes,
+    tasks: !!m?.tasks,
+  };
+});
+
 function onToggle(id: ModuleId, e: Event) {
   settings.setEnabled(id, (e.target as HTMLInputElement).checked);
 }
+
 function reset() {
   settings.reset();
+}
+
+async function clearModule(id: ModuleId) {
+  const msg =
+    id === "notes"
+      ? "This will permanently delete all Notes stored locally on this device. Export first if needed.\n\nProceed?"
+      : "This will permanently delete all Tasks stored locally on this device. Export first if needed.\n\nProceed?";
+  if (!window.confirm(msg)) return;
+
+  try {
+    if (id === "notes") await clearNotesData();
+    if (id === "tasks") await clearTasksData();
+    window.alert(
+      `${
+        (id as string).charAt(0).toUpperCase() + (id as string).slice(1)
+      } data cleared.`
+    );
+  } catch {
+    window.alert(
+      "Could not clear module data. You can use the global wipe in Data ▸ Danger Zone if needed."
+    );
+  }
 }
 
 /* Profile */
@@ -165,7 +251,7 @@ function onNameInput(e: Event) {
   user.setName((e.target as HTMLInputElement).value);
 }
 async function onAvatarPick(e: Event) {
-  const file = (e.target as HTMLInputElement).files?.[0];
+  const file = (e.target as HTMLInputElement).files?.[0] ?? null;
   if (!file) return;
   const dataUrl = await fileToDataUrl(file);
   user.setAvatar(dataUrl);
@@ -182,16 +268,42 @@ function fileToDataUrl(file: File): Promise<string> {
   });
 }
 
-/* Data */
-async function onImport(e: Event) {
+/* Core-only Import handler */
+async function onImportCore(e: Event) {
   const input = e.target as HTMLInputElement;
-  const file = input.files?.[0];
+  const file = input.files?.[0] ?? null;
   if (!file) return;
   try {
-    await importAll(file);
+    await importCore(file); // core-only (no theme)
     input.value = "";
   } catch {
-    alert("Import failed. Check the file.");
+    window.alert("Import failed. Check the file.");
+  }
+}
+
+/* Storage usage hint */
+const storageHint = ref<string>("");
+onMounted(async () => {
+  const est = await estimateStorage();
+  if (est && typeof est.quota === "number" && est.quota > 0) {
+    const mb = (n: number) => (n / (1024 * 1024)).toFixed(2) + " MB";
+    const usage = typeof est.usage === "number" ? est.usage : 0;
+    storageHint.value = `${mb(usage)} of ${mb(est.quota)} used`;
+  }
+});
+
+/* Danger Zone: wipe all local data */
+async function onWipeAll() {
+  const sure = window.confirm(
+    "This will permanently delete ALL locally stored data for this app on this device (IndexedDB, local/session storage, caches). Make sure you exported a backup first.\n\nProceed?"
+  );
+  if (!sure) return;
+
+  try {
+    await wipeAllAppData();
+    window.alert("Local data deleted. The app will reload.");
+  } finally {
+    location.reload();
   }
 }
 </script>
@@ -203,14 +315,13 @@ async function onImport(e: Event) {
   gap: 1rem;
 }
 
-/* two columns on wide screens now that Appearance is removed */
-.grid-3.two-col {
+.grid-2 {
   display: grid;
   gap: 1rem;
   grid-template-columns: 1fr;
 }
 @media (min-width: 1040px) {
-  .grid-3.two-col {
+  .grid-2 {
     grid-template-columns: 1fr 1fr;
   }
 }
@@ -220,17 +331,14 @@ h2 {
   font-size: var(--fs-2);
 }
 
-/* Cards that balance vertical space */
-/* Cards that balance vertical space */
+/* Cards */
 .card--column {
   display: flex;
   flex-direction: column;
-  /* min-height: 260px;  ❌ remove hard height */
-  gap: 0.5rem; /* keeps content breathing */
+  gap: 0.5rem;
 }
-
 .footer-actions {
-  margin-top: 0.5rem;
+  margin-top: 0.25rem;
   display: flex;
   justify-content: flex-end;
 }
@@ -238,7 +346,7 @@ h2 {
   flex: 1 1 auto;
 }
 
-/* Profile card */
+/* Profile */
 .profile-card {
   padding-top: 1rem;
 }
@@ -268,7 +376,7 @@ h2 {
   opacity: 0.7;
 }
 
-/* Proportional form grid inside Profile */
+/* Form grid */
 .fields {
   display: grid;
   gap: 0.75rem;
@@ -291,32 +399,44 @@ h2 {
   font-weight: 600;
 }
 
-/* Rows / toggles */
-.rows {
+/* Modules card UI */
+.module-rows {
   display: grid;
-  gap: 0.6rem;
+  gap: 0.5rem;
+}
+.module-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: start;
+  gap: 0.75rem;
+  padding: 0.25rem 0;
 }
 .toggle {
   display: grid;
   grid-template-columns: 20px 1fr;
-  align-items: center;
+  align-items: start;
   gap: 0.5rem;
-  padding: 0.25rem 0;
+}
+.toggle strong {
+  display: block;
+}
+.toggle small {
+  display: block;
+  line-height: 1.2;
 }
 
-/* Buttons & helpers */
-.btn {
-  border: 1px solid var(--border);
-  background: var(--panel-elev, var(--panel));
-  padding: 0.4rem 0.65rem;
-  border-radius: 8px;
-}
-.row__controls {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
+.module-actions {
+  display: inline-flex;
+  gap: 0.5rem;
   flex-wrap: wrap;
+  justify-content: flex-end;
 }
+.btn--ghost {
+  background: var(--panel);
+  border-color: var(--border);
+}
+
+/* Data card */
 .bullets {
   margin: 0.25rem 0 0;
   padding-left: 1.2rem;
@@ -324,6 +444,30 @@ h2 {
 .bullets li {
   margin: 0.1rem 0;
 }
+
+.btn {
+  border: 1px solid var(--border);
+  background: var(--panel-elev, var(--panel));
+  padding: 0.4rem 0.65rem;
+  border-radius: 8px;
+}
+.btn--danger {
+  border-color: var(--danger, #ef4444);
+  color: var(--danger, #ef4444);
+  background: color-mix(in srgb, var(--danger, #ef4444) 12%, transparent);
+}
+.btn--danger.btn--ghost {
+  background: var(--panel);
+}
+
+/* Danger Zone */
+.danger-zone {
+  border-top: 1px dashed var(--border);
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+}
+
+/* Misc */
 .sr-only {
   position: absolute;
   width: 1px;
@@ -347,5 +491,8 @@ h2 {
 .input:focus {
   outline: none;
   box-shadow: var(--focus-ring);
+}
+.usage {
+  margin-top: 0.25rem;
 }
 </style>
